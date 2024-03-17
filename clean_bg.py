@@ -6,6 +6,11 @@ import os
 
 resolution = 2000  # 统一输出分辨率
 
+if not path.exists('out/'):
+    os.mkdir('out/')
+if not path.exists('res/'):
+    os.mkdir('res/')
+
 
 def remove_bg(path_in):
     in_image = Image.open(path_in)
@@ -44,8 +49,7 @@ def handle_img(pic_name):
 
 
 if __name__ == '__main__':
-    if not path.exists('out/'):
-        os.mkdir('out/')
+
     index = 1
     size = len(os.listdir('res'))
     for f in os.listdir('res'):
