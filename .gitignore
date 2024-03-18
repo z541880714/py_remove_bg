@@ -3,3 +3,5 @@ dist/
 out/
 res/
 .idea/
+out_serial_num/
+*.spec
