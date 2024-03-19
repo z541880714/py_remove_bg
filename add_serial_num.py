@@ -5,7 +5,8 @@ import os
 
 resolution = 1024  # 统一输出分辨率
 logo_size = 200
-logo_margin = 10
+logo_margin = 20
+font_size = 50
 out_dir = 'out_serial_num/'
 
 if not path.exists(out_dir):
@@ -29,8 +30,8 @@ def handle_img(pic_name):
     new_img.paste(no_bg, box, mask=None)
     new_img = new_img.resize((resolution, resolution), Image.BILINEAR)
     draw = ImageDraw.Draw(new_img)
-    font_style = ImageFont.truetype('arial.ttf', 30, encoding='utf-8')
-    draw.text((20, resolution - 50), pic_name[:pic_name.index('.')], '#000000', font=font_style)
+    font_style = ImageFont.truetype('arial.ttf', font_size, encoding='utf-8')
+    draw.text((20, resolution - font_size - 20), pic_name[:pic_name.index('.')], '#000000', font=font_style)
     new_img.save(f'{out_dir}/{pic_name}')
 
 
