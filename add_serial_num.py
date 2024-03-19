@@ -24,9 +24,8 @@ def handle_img(pic_name):
     x_margin = int(0.5 * (max_size - x_))
     y_margin = int(0.5 * (max_size - y_))
     new_img = Image.new('RGB', (max_size, max_size), (255, 255, 255))
-    box = (x_margin, y_margin,
-           min(x_margin + x, max_size - x_margin),
-           min(x_margin + y, max_size - y_margin))
+    box = (x_margin, y_margin, x_margin + x_, y_margin + y_)
+    # print(f'max size: {max_size}, origin size: {(x, y)}, box size: {box},  margin:{(x_margin, y_margin)}')
     new_img.paste(no_bg, box, mask=None)
     new_img = new_img.resize((resolution, resolution), Image.BILINEAR)
     draw = ImageDraw.Draw(new_img)
@@ -39,8 +38,6 @@ if __name__ == '__main__':
     index = 1
     size = len(os.listdir('res'))
     for f in os.listdir('res'):
-        # if not f == 'ATHB430290-F776-IvyZhang.jpg':
-        #     continue
         print(f'正在处理:{f} 图片总数:{size},当前进度:{index}')
         index += 1
         # remove_background(f)
