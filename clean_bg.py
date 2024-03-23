@@ -141,7 +141,7 @@ def handle_img_2(pic_name):
     origin_data = cv2.imread(img_path)
     rec = split_max_rec(origin_data)
     area = rec[2] * rec[3]
-    if area > 200000:
+    if area > 2000000:
         img = img.crop((rec[0], rec[1], rec[0] + rec[2], rec[1] + rec[3]))
     no_bg = process_bg(img)
     new_img = joint(no_bg, pic_name, True)
