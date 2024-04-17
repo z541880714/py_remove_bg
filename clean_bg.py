@@ -72,7 +72,7 @@ def logoImage():
 
 def joint(no_bg, pic_name, has_mask=False):
     x, y = no_bg.size
-    max_size = 700
+    max_size = 1000
     rate = min(max_size / x, max_size / y)
     x_ = int(rate * x)
     y_ = int(rate * y)
