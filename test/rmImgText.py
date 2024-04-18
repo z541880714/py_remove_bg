@@ -1,18 +1,40 @@
 # coding:utf8
-
+import os.path
 import sys
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
-from ZImageUtil import cv2_show
+from ZImageUtil import cv2_show, plt_show
+
+
+def blackColorFilter(img):
+    """
+    由于文字,log 为黑色 只保留黑色
+    :param img:
+    :return:
+    """
+
+    img = 255 - img
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    l_black = np.array([0, 0, 215])
+    h_black = np.array([180, 30, 255])
+    mask = cv2.inRange(hsv, l_black, h_black)
+    res = cv2.bitwise_or(img, img, mask=mask)
+    # plt_show([res])
+    return res
 
 
 def preprocess(gray):
+    kernel = np.ones((4, 4), np.uint8)
+    e = cv2.erode(gray, kernel)
+    f = cv2.subtract(gray, e)
+    f = cv2.threshold(f, 110, 255, cv2.THRESH_BINARY)[1]
+    # cv2_show(f)
     # 1. Sobel算子，x方向求梯度
-    sobel = cv2.Sobel(gray, cv2.CV_8U, 1, 0, ksize=3)
+    sobel = cv2.Sobel(f, cv2.CV_8U, 1, 0, ksize=3)
     # 2. 二值化
     ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
-    cv2_show(binary)
 
     # 3. 膨胀和腐蚀操作的核函数
     element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
@@ -28,17 +50,16 @@ def preprocess(gray):
     dilation2 = cv2.dilate(erosion, element2, iterations=3)
 
     # 7. 存储中间图片
-    cv2.imwrite("binary.png", binary)
-    cv2.imwrite("dilation.png", dilation)
-    cv2.imwrite("erosion.png", erosion)
-    cv2.imwrite("dilation2.png", dilation2)
+    # cv2.imwrite("binary.png", binary)
+    # cv2.imwrite("dilation.png", dilation)
+    # cv2.imwrite("erosion.png", erosion)
+    # cv2.imwrite("dilation2.png", dilation2)
 
     return dilation2
 
 
 def findTextRegion(img):
     region = []
-
     # 1. 查找轮廓
     contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -49,7 +70,7 @@ def findTextRegion(img):
         area = cv2.contourArea(cnt)
 
         # 面积小的都筛选掉
-        if area < 1000:
+        if area < 5000:
             continue
         # 轮廓近似，作用很小
         epsilon = 0.001 * cv2.arcLength(cnt, True)
@@ -77,8 +98,9 @@ def findTextRegion(img):
 
 
 def detect(img):
+    bw = blackColorFilter(img)
     # 1.  转化成灰度图
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(bw, cv2.COLOR_BGR2GRAY)
     # 2. 形态学变换的预处理，得到可以查找矩形的图片
     dilation = preprocess(gray)
     # 3. 查找和筛选文字区域
@@ -88,17 +110,23 @@ def detect(img):
     for box in region:
         cv2.drawContours(img, [box], 0, (0, 255, 0), 2)
 
-    cv2.namedWindow("img", cv2.WINDOW_NORMAL)
-    cv2.imshow("img", img)
+    # cv2.namedWindow("img", cv2.WINDOW_NORMAL)
+    # cv2.imshow("img", img)
+    #
+    # # 带轮廓的图片
+    # cv2.imwrite("contours.png", img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    # 带轮廓的图片
-    cv2.imwrite("contours.png", img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    return img
 
 
 if __name__ == '__main__':
     # 读取文件
-    image_path = '../res/APHB428627-M215-CmanChen.jpg'
-    img = cv2.imread(image_path)
-    detect(img)
+    root = os.path.abspath('../res')
+    for filename in os.listdir(root):
+
+        image_path = f'{root}/{filename}'
+        img = cv2.imread(image_path)
+        img = detect(img)
+        cv2.imwrite(f'../tmp/{filename}', img)
