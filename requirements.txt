@@ -5,3 +5,4 @@ transparent_background
 opencv-python~=4.9.0.80
 opencv-contrib-python
 pytesseract~=0.3.10
+matplotlib~=3.8.0

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-image = cv2.imread('../res/11111.jpg')
+image = cv2.imread('../res/APHB428627-M215-CmanChen.jpg')
 shap = image.shape
 print('shape: ', shap, 'type of shap: ', type(shap), shap[0], shap[1], shap[2])
 h, w, l = shap
