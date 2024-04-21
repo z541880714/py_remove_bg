@@ -18,11 +18,11 @@ def cv2_show(img, name=''):
     cv2.destroyAllWindows()
 
 
-def plt_show(imgs: []):
+def plt_show(*imgs):
+    print(type(imgs))
     size = len(imgs)
-    print('size: ' , size)
+    print('size: ', size)
     for index, it in enumerate(imgs):
-        print('index: ', index)
         plt.subplot(1, size, index + 1)
         plt.imshow(cv2.cvtColor(it, cv2.COLOR_BGR2RGB))
     plt.show()
