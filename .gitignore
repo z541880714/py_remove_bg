@@ -6,4 +6,5 @@ res/
 out_serial_num/
 *.spec
 
-tmp/
+outLogo/
+resLogo/

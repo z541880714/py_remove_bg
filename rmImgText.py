@@ -3,10 +3,11 @@ import os.path
 import sys
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
-import test
+sys.path.append(os.path.abspath('util'))
+from util.ZImageUtil import plt_show
+
 
 def reserveBlackColor(img):
     """
@@ -21,8 +22,6 @@ def reserveBlackColor(img):
     h_black = np.array([180, 30, 255])
     mask = cv2.inRange(hsv, l_black, h_black)
     res = cv2.bitwise_or(img, img, mask=mask)
-    plt_show(res)
-
     return res
 
 
@@ -39,7 +38,7 @@ def dropBlackColor(img):
     h_white = np.array([255, 255, 255])
     mask = cv2.inRange(img, l_white, h_white)
     result = cv2.bitwise_or(img, dilation2, mask=mask)
-    # plt_show(dilation2)
+    # plt_show(img, gray, sobel, binary, dilation)
     return result
 
 
@@ -120,8 +119,8 @@ def findTextRegion(img):
             continue
         if h_min * w_min > 40000:
             continue
-        box[:, 0] *= int(scale_w)
-        box[:, 1] *= int(scale_h)
+        box[:, 0] = np.int32(box[:, 0] * scale_w)
+        box[:, 1] = np.int32(box[:, 1] * scale_h)
         region.append(box)
     return region
 
@@ -138,6 +137,7 @@ def detect(img):
     # 4. 用绿线画出这些找到的轮廓
     # for box in region:
     #     cv2.drawContours(img, [box], 0, (0, 255, 0), 2)
+    # plt_show(img)
 
     # 4.1 将轮廓内的 黑色 替换成 白色
     for box in region:
@@ -151,12 +151,19 @@ def detect(img):
 
 
 if __name__ == '__main__':
+    if not os.path.exists('resLogo'):
+        os.mkdir('resLogo')
+    if not os.path.exists('outLogo'):
+        os.mkdir('outLogo')
     # 读取文件
-    root = os.path.abspath('res')
+    root = os.path.abspath('resLogo')
+
     for filename in os.listdir(root):
+        # if "LYCB4C006YJ103" in filename:
         print('file name: ', filename)
         image_path = f'{root}/{filename}'
         img = cv2.imread(image_path)
+        img = cv2.resize(img, (1024, 1024))
         img = detect(img)
-        cv2.imwrite(f'../tmp/{filename}', img)
+        cv2.imwrite(f'outLogo/{filename}', img)
         # plt_show(img)

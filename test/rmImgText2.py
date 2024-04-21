@@ -1,7 +1,5 @@
-from PIL import Image
 import cv2
 import numpy as np
-from ZImageUtil import img_pil_to_cv2, img_cv2_to_pil
 import matplotlib.pyplot as plt
 
 img = cv2.imread('../res/ATHB430295-F776-IvyZhang.jpg')
