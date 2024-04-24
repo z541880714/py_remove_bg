@@ -9,13 +9,25 @@ h = util.Cm(8)  # 每张图片的高度
 m = 3  # 每行图片的数量
 n = 2  # 每列图片的数量
 
-prs.slide_width = w * m
-prs.slide_height = h * n
+left = util.Cm(0.1)  # 左边预留的间隔
+top = util.Cm(0.1)  # 顶部预留的间隔
+right = util.Cm(0.1)  # 右边预留的间隔
+bottom = util.Cm(0.1)  # 底部预留的间隔
+
+prs.slide_width = (w + left + right) * m
+prs.slide_height = (h + top + bottom) * n
 blank_slid = prs.slide_layouts[6]
 
 root = os.path.dirname(__file__)
 
 res_dir = f'{root}/res'
+out_dir = f'{root}/out'
+if not os.path.exists(res_dir):
+    os.mkdir(res_dir)
+
+if not os.path.exists(out_dir):
+    os.mkdir(out_dir)
+
 img_path_list = []
 for name in os.listdir(res_dir):
     img_path_list.append(os.path.join(res_dir, name))
@@ -30,7 +42,7 @@ while index < len(img_path_list):
     while index < len(img_path_list) and i < m * n:
         x = i % m
         y = int(i / m)
-        slid.shapes.add_picture(img_path_list[index], w * x, h * y, w, h)
+        slid.shapes.add_picture(img_path_list[index], (left + w + right) * x + left, (top + h + bottom) * y + top, w, h)
         index += 1
         i += 1
 
