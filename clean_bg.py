@@ -1,12 +1,11 @@
-# encoding='utf-8'
-import numpy
-from PIL import Image, ImageDraw, ImageFont
-from os import path
+# encoding=utf-8
 import os
-from transparent_background import Remover
-from rembg.bg import remove
+from os import path
+
 import cv2
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+from transparent_background import Remover
 
 remover = Remover()
 
