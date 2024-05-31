@@ -6,8 +6,16 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from transparent_background import Remover
+import argparse
 
 remover = Remover()
+resolution = 1024  # 统一输出分辨率
+logo_size = 200
+logo_margin = 10
+res_dir = os.path.abspath('res')
+
+if not path.exists(res_dir):
+    os.mkdir(res_dir)
 
 
 def areaFilter(minArea, inputImage):
@@ -16,10 +24,12 @@ def areaFilter(minArea, inputImage):
         cv2.connectedComponentsWithStats(inputImage, connectivity=4)
     # Get the indices/labels of the remaining components based on the area stat
     # (skip the background component at index 0)
-    remainingComponentLabels = [i for i in range(1, componentsNumber) if componentStats[i][4] >= minArea]
+    remainingComponentLabels = [i for i in range(
+        1, componentsNumber) if componentStats[i][4] >= minArea]
     # Filter the labeled pixels based on the remaining labels,
     # assign pixel intensity to 255 (uint8) for the remaining pixels
-    filteredImage = np.where(np.isin(labeledImage, remainingComponentLabels) == True, 255, 0).astype('uint8')
+    filteredImage = np.where(
+        np.isin(labeledImage, remainingComponentLabels) == True, 255, 0).astype('uint8')
     return filteredImage
 
 
@@ -33,7 +43,8 @@ def binaryImage(inputImage, threshold_=0.75):
     # Convert back to uint 8:
     kChannel = (255 * kChannel).astype(np.uint8)
     binaryThresh = int(255 * threshold_)
-    _, binaryImage = cv2.threshold(kChannel, binaryThresh, 255, cv2.THRESH_BINARY)
+    _, binaryImage = cv2.threshold(
+        kChannel, binaryThresh, 255, cv2.THRESH_BINARY)
     binaryImage = areaFilter(100, binaryImage)
     # Use a little bit of morphology to clean the mask:
     # Set kernel (structuring element) size:
@@ -41,7 +52,8 @@ def binaryImage(inputImage, threshold_=0.75):
     # Set morph operation iterations:
     opIterations = 2
     # Get the structuring element:
-    morphKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernelSize, kernelSize))
+    morphKernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (kernelSize, kernelSize))
     # Perform closing:
     img_binary = cv2.morphologyEx(binaryImage, cv2.MORPH_CLOSE, morphKernel, None, None, opIterations,
                                   cv2.BORDER_REFLECT101)
@@ -53,25 +65,21 @@ def process_bg(img):
     return img_
 
 
-resolution = 1024  # 统一输出分辨率
-logo_size = 200
-logo_margin = 10
-if not path.exists('out/'):
-    os.mkdir('out/')
-if not path.exists('res/'):
-    os.mkdir('res/')
-
-
-def logoImage():
-    logo = Image.open('assets/logo2.png')
+def logoImage(logo_path):
+    logo = Image.open(logo_path)
     x, y = logo.size
     logo = logo.resize((logo_size, int(y / x * logo_size)))
-    return logo
+    new_img = Image.new('RGB', (logo_size, logo_size), (255, 255, 255))
+    new_img.paste(logo, (0, 0), mask=logo)
+    return new_img
 
 
-def joint(no_bg, pic_name, has_mask=False):
+def joint(no_bg, pic_name, logo_path=None, sizeinfo=None, sn=False, has_mask=False):
+    print("text:", sn)
+    print("logo:", logo_path)
+    print('pic_name:', pic_name)
     x, y = no_bg.size
-    max_size = 1000
+    max_size = 950
     rate = min(max_size / x, max_size / y)
     x_ = int(rate * x)
     y_ = int(rate * y)
@@ -79,21 +87,27 @@ def joint(no_bg, pic_name, has_mask=False):
     x_margin = int(0.5 * (resolution - x_))
     y_margin = int(0.5 * (resolution - y_))
     new_img = Image.new('RGB', (resolution, resolution), (255, 255, 255))
-    new_img.paste(no_bg, (x_margin, y_margin), mask=no_bg if has_mask else None)
-    logo = logoImage()
-    new_img.paste(logo, (resolution - logo.width, logo_margin), mask=logo)
-    draw = ImageDraw.Draw(new_img)
-    font_style = ImageFont.truetype('arial.ttf', 50, encoding='utf-8')
-    draw.text((20, resolution - 70), pic_name[:pic_name.index('.')], '#000000', font=font_style)
+    new_img.paste(no_bg, (x_margin, y_margin),
+                  mask=no_bg if has_mask else None)
+
+    if logo_path is not None:
+        logo = logoImage(logo_path)
+        new_img.paste(logo, (resolution - logo.width, logo_margin))
+    if sn:
+        draw = ImageDraw.Draw(new_img)
+        font_style = ImageFont.truetype('arial.ttf', 50, encoding='utf-8')
+        draw.text((20, resolution - 70),
+                  pic_name[:pic_name.rindex('.')], '#000000', font=font_style)
+
+    if sizeinfo is not None:
+        draw = ImageDraw.Draw(new_img)
+        font_size = 30
+        font_style = ImageFont.truetype(
+            'arial.ttf', font_size, encoding='utf-8')
+        w = font_size * len(sizeinfo)
+        draw.text(((resolution - w)/2, resolution - 110), sizeinfo,
+                  '#000000', font=font_style, align='center')
     return new_img
-
-
-def handle_img(pic_name):
-    img_path = f'res/{pic_name}'
-    img = Image.open(img_path).convert("RGB")
-    no_bg = process_bg(img)
-    new_img = joint(no_bg, pic_name)
-    new_img.save(f'./out/{pic_name}')
 
 
 # 获取最大 区域的坐标
@@ -107,7 +121,8 @@ def split_max_rec(image):
     #   cv2.RETR_EXTERNAL 只检测外轮廓
     # 	cv2.CHAIN_APPROX_SIMPLE 压缩水平方向 ，垂直方向，对角线方向的元素，只保留该方向的终点坐标，例如一个矩形轮廓只需要4个点来保存轮廓信息
     # 返回两个值，一个是轮廓本身，一个是每条轮廓对应的属性
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # cv2.drawContours(image, contours, -1, (0, 0, 255), 2)
     # cv2.imshow("img", image)
     # cv2.waitKey(0)
@@ -134,8 +149,8 @@ def split_max_rec(image):
     return x - 10, y - 10, w + 20, h + 20
 
 
-def handle_img_2(pic_name):
-    img_path = f'res/{pic_name}'
+def handle_img_2(pic_name, logo_path=None, sn=False, sizeinfo=None):
+    img_path = f'{res_dir}/{pic_name}'
     img = Image.open(img_path).convert("RGB")
     origin_data = cv2.imread(img_path)
     rec = split_max_rec(origin_data)
@@ -143,24 +158,30 @@ def handle_img_2(pic_name):
     if area > 2000000:
         img = img.crop((rec[0], rec[1], rec[0] + rec[2], rec[1] + rec[3]))
     no_bg = process_bg(img)
-    new_img = joint(no_bg, pic_name, True)
-    new_img.save(f'./out/{pic_name}')
+    new_img = joint(no_bg, pic_name, logo_path, sizeinfo, sn, True)
+    return new_img
 
 
 def remove_background(img_name):
-    img_in_path = f'res/{img_name}'
-    img_out_path = f'out/{img_name}'
-    os.system(f"python -m backgroundremover.cmd.cli -i {img_in_path} -o {img_out_path}")
+    img_in_path = f'{res_dir}/{img_name}'
+    img_out_path = f'{out_dir}/{img_name}'
+    os.system(
+        f"python -m backgroundremover.cmd.cli -i {img_in_path} -o {img_out_path}")
 
 
 if __name__ == '__main__':
-    index = 1
-    size = len(os.listdir('res'))
-    for f in os.listdir('res'):
-        # if not f == 'ATHB430290-F776-IvyZhang.jpg':
-        #     continue
-        print(f'正在处理:{f} 图片总数:{size},当前进度:{index}')
-        index += 1
-        # remove_background(f)
-        handle_img_2(f)
-        # if index > 1: break
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', type=str, help='原始图片路径')
+    parser.add_argument('output', type=str, help='处理后的图片路径')
+    parser.add_argument('--logo', type=str, default="", help="logo文件的路径")
+    parser.add_argument('--sn', action='store_true', help="是否在底部添加文件名")
+    parser.add_argument('--sizeinfo', type=str, default="", help='尺寸信息内容')
+    args = parser.parse_args()
+
+    res_dir = os.path.dirname(args.input)
+    image_name = os.path.basename(args.input)
+    out_dir = args.output
+    logo_path = args.logo if args.logo != '' else None
+    size_info = args.sizeinfo if args.sizeinfo != '' else None
+    img = handle_img_2(image_name, logo_path, args.sn, size_info)
+    img.save(args.output)
