@@ -1,6 +1,10 @@
-set pyroot=.venv\Scripts
-set pyth=.venv\Scripts\python.exe
-set pip=.venv\Scripts\pip.exe
+chcp 65001
+
+set pyroot=C:\Users\lionel\anaconda3\envs\py_remove_bg\Scripts
+set pyth=C:\Users\lionel\anaconda3\envs\py_remove_bg\python.exe
+set pip=%pyroot%\pip.exe
+set pyname=clean_bg_arg
+
 
 %pyth% -m pip install --upgrade pip
 
@@ -8,10 +12,10 @@ set pip=.venv\Scripts\pip.exe
 
 %pip% install --upgrade pyinstaller
 
-%pyroot%\pyinstaller clean_bg.py
+%pyroot%\pyinstaller %pyname%.py
 
-xcopy res dist\clean_bg\res /e/i
-if not exist dist\clean_bg\assets md dist\clean_bg\assets
-xcopy assets dist\clean_bg\assets /e/i
+xcopy res dist\%pyname%\res /e/i
+if not exist dist\%pyname%\assets md dist\%pyname%\assets
+xcopy assets dist\%pyname%\assets /e/i
 
 pause
