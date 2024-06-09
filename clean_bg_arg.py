@@ -74,10 +74,9 @@ def logoImage(logo_path):
     return new_img
 
 
-def joint(no_bg, pic_name, logo_path=None, sizeinfo=None, sn=False, has_mask=False):
+def joint(no_bg, logo_path=None, sizeinfo=None, sn='', has_mask=False):
     print("text:", sn)
     print("logo:", logo_path)
-    print('pic_name:', pic_name)
     x, y = no_bg.size
     max_size = 950
     rate = min(max_size / x, max_size / y)
@@ -93,19 +92,18 @@ def joint(no_bg, pic_name, logo_path=None, sizeinfo=None, sn=False, has_mask=Fal
     if logo_path is not None:
         logo = logoImage(logo_path)
         new_img.paste(logo, (resolution - logo.width, logo_margin))
-    if sn:
+    if len(sn) > 0:
         draw = ImageDraw.Draw(new_img)
         font_style = ImageFont.truetype('arial.ttf', 50, encoding='utf-8')
-        draw.text((20, resolution - 70),
-                  pic_name[:pic_name.rindex('.')], '#000000', font=font_style)
+        draw.text((20, resolution - 70), sn, '#000000', font=font_style)
 
     if sizeinfo is not None:
         draw = ImageDraw.Draw(new_img)
-        font_size = 30
+        font_size = 45
         font_style = ImageFont.truetype(
             'arial.ttf', font_size, encoding='utf-8')
         w = font_size * len(sizeinfo)
-        draw.text(((resolution - w)/2, resolution - 110), sizeinfo,
+        draw.text(((resolution - w * 0.5) / 2, resolution - font_size - 80), sizeinfo,
                   '#000000', font=font_style, align='center')
     return new_img
 
@@ -149,16 +147,15 @@ def split_max_rec(image):
     return x - 10, y - 10, w + 20, h + 20
 
 
-def handle_img_2(pic_name, logo_path=None, sn=False, sizeinfo=None):
-    img_path = f'{res_dir}/{pic_name}'
-    img = Image.open(img_path).convert("RGB")
-    origin_data = cv2.imread(img_path)
+def handle_img_2(input_path, logo_path=None, sn='', sizeinfo=None):
+    img = Image.open(input_path).convert("RGB")
+    origin_data = cv2.imread(input_path)
     rec = split_max_rec(origin_data)
     area = rec[2] * rec[3]
     if area > 2000000:
         img = img.crop((rec[0], rec[1], rec[0] + rec[2], rec[1] + rec[3]))
     no_bg = process_bg(img)
-    new_img = joint(no_bg, pic_name, logo_path, sizeinfo, sn, True)
+    new_img = joint(no_bg, logo_path, sizeinfo, sn, True)
     return new_img
 
 
@@ -174,14 +171,12 @@ if __name__ == '__main__':
     parser.add_argument('input', type=str, help='原始图片路径')
     parser.add_argument('output', type=str, help='处理后的图片路径')
     parser.add_argument('--logo', type=str, default="", help="logo文件的路径")
-    parser.add_argument('--sn', action='store_true', help="是否在底部添加文件名")
+    parser.add_argument('--sn', type=str, default='', help="是否在底部添加文件名")
     parser.add_argument('--sizeinfo', type=str, default="", help='尺寸信息内容')
     args = parser.parse_args()
 
-    res_dir = os.path.dirname(args.input)
-    image_name = os.path.basename(args.input)
     out_dir = args.output
     logo_path = args.logo if args.logo != '' else None
     size_info = args.sizeinfo if args.sizeinfo != '' else None
-    img = handle_img_2(image_name, logo_path, args.sn, size_info)
+    img = handle_img_2(args.input, logo_path, args.sn, size_info)
     img.save(args.output)
