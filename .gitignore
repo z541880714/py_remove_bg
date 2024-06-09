@@ -10,3 +10,5 @@ outLogo/
 resLogo/
 output/
 .venv
+
+build.bat

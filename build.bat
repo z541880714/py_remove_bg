@@ -2,16 +2,17 @@ set pyroot=.venv\Scripts
 set pyth=.venv\Scripts\python.exe
 set pip=.venv\Scripts\pip.exe
 
+set pyname=clean_bg_arg
+
 %pyth% -m pip install --upgrade pip
 
 %pip% install -r requirements.txt
 
 %pip% install --upgrade pyinstaller
 
-%pyroot%\pyinstaller clean_bg.py
+%pyroot%\pyinstaller %pyname%.py
 
-xcopy res dist\clean_bg\res /e/i
-if not exist dist\clean_bg\assets md dist\clean_bg\assets
-xcopy assets dist\clean_bg\assets /e/i
+if not exist dist\%pyname%\assets md dist%pyname%\assets
+xcopy assets dist\%pyname%\assets /e/i/y
 
 pause
