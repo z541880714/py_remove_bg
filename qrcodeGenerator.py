@@ -17,6 +17,7 @@ def resize(img, size_t):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("str", type=str, help="二维码的字符串内容")
+parser.add_argument("logoPath", type=str, help="logo文件路径")
 parser.add_argument("output", type=str, help="二维码文件输出路径")
 args = parser.parse_args()
 
@@ -32,7 +33,7 @@ img.save(output)
 crImg = cv2.imread(output)
 crImg = cv2.resize(crImg, (500, 500))
 
-logo = cv2.imread("assets/logo2.png")
+logo = cv2.imread(args.logoPath)
 
 logo_gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
 ret, logo_mask = cv2.threshold(logo_gray, 20, 255, cv2.THRESH_BINARY)
