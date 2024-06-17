@@ -4,6 +4,7 @@ import os
 import qrcode
 import argparse
 import cv2
+import numpy as np
 
 
 def resize(img, size_t):
@@ -30,10 +31,11 @@ img = qrcode.make(data=str)
 img.save(output)
 
 # 将logo 放入 二维码中间.
-crImg = cv2.imread(output)
+crImg = cv2.imdecode(np.fromfile(output, dtype=np.uint8), cv2.IMREAD_COLOR)
 crImg = cv2.resize(crImg, (500, 500))
+print('crImg shape:', crImg.shape)
 
-logo = cv2.imread(args.logoPath)
+logo = cv2.imdecode(np.fromfile(args.logoPath, dtype=np.uint8), cv2.IMREAD_COLOR)
 
 logo_gray = cv2.cvtColor(logo, cv2.COLOR_BGR2GRAY)
 ret, logo_mask = cv2.threshold(logo_gray, 20, 255, cv2.THRESH_BINARY)
@@ -50,4 +52,4 @@ h, w, _ = logo.shape
 left = (500 - w) // 2
 top = (500 - h) // 2
 crImg[top: top + h, left:left + w] = logo
-cv2.imwrite(output, crImg)
+cv2.imencode('.jpg', crImg)[1].tofile(output)

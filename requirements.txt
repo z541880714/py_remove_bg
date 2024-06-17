@@ -1,8 +1,8 @@
-numpy>=1.26.4
+numpy==1.26.4
 rembg>=2.0.53
 pillow>=9.4.0
 transparent_background
-opencv-python~=4.9.0.80
+opencv-python
 pytesseract~=0.3.10
 matplotlib~=3.8.0
 python-pptx~=0.6.23
