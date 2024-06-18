@@ -1,6 +1,4 @@
 # encoding=utf-8
-import os
-from os import path
 
 import cv2
 import numpy as np
@@ -12,10 +10,6 @@ remover = Remover()
 resolution = 1024  # 统一输出分辨率
 logo_size = 200
 logo_margin = 10
-res_dir = os.path.abspath('res')
-
-if not path.exists(res_dir):
-    os.mkdir(res_dir)
 
 
 def areaFilter(minArea, inputImage):
@@ -60,6 +54,7 @@ def binaryImage(inputImage, threshold_=0.75):
     return img_binary
 
 
+#  f"python -m backgroundremover.cmd.cli -i {img_in_path} -o {img_out_path}")
 def process_bg(img):
     img_ = remover.process(img, type='rgba')
     return img_
@@ -157,13 +152,6 @@ def handle_img_2(input_path, logo_path=None, sn='', sizeinfo=None):
     no_bg = process_bg(img)
     new_img = joint(no_bg, logo_path, sizeinfo, sn, True)
     return new_img
-
-
-def remove_background(img_name):
-    img_in_path = f'{res_dir}/{img_name}'
-    img_out_path = f'{out_dir}/{img_name}'
-    os.system(
-        f"python -m backgroundremover.cmd.cli -i {img_in_path} -o {img_out_path}")
 
 
 if __name__ == '__main__':
