@@ -1,7 +1,6 @@
 import os.path
 
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
-import pytesseract
 
 image = Image.open('../res/LYCB4C006YJ103.jpg')
 
